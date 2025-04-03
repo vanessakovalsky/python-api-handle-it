@@ -19,7 +19,7 @@ pipeline {
         stage('Security analysis') {
                   steps{
 			  sh "mkdir report"
-			  sh "docker run --rm --volume \"\$(pwd)\":/src --volume report:/report \ secfigo/bandit:latest"
+			  sh "docker run --rm --volume \"\$(pwd)\":/src --volume report:/report secfigo/bandit:latest"
 			}
 		}
 	stage ("Dependency Check with Python Safety"){
