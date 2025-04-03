@@ -1,7 +1,7 @@
 pipeline {
 
     parameters{
-        string(name: 'environnement', defaultValue: 'dev', decription: 'choisir l\'environnement cible' )
+        string(name: 'environnement', defaultValue: 'dev', description: 'choisir l\'environnement cible' )
         booleanParam(name: 'ouinon', defaultValue: false, description: '')
     }
 
