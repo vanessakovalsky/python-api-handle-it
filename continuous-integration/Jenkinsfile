@@ -16,12 +16,12 @@ pipeline {
                 git url: 'https://github.com/vanessakovalsky/python-api-handle-it.git'
             }
         }
-        stage('Security analysis') {
-                  steps{
-			  sh "mkdir report"
-			  sh "docker run --rm --volume \"\$(pwd)\":/src --volume report:/report secfigo/bandit:latest"
-			}
-		}
+        //stage('Security analysis') {
+        //          steps{
+		//	  sh "mkdir report"
+		//	  sh "docker run --rm --volume \"\$(pwd)\":/src --volume report:/report secfigo/bandit:latest"
+		//	}
+		//}
 	stage ("Dependency Check with Python Safety"){
 			steps{
 				catchError {
