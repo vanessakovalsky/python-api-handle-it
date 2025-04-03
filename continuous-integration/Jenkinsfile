@@ -1,16 +1,27 @@
 pipeline {
 
-      environment {
+    parameters{
+        string(name: 'environnement', defaultValue: 'dev', decription: 'choisir l\'environnement cible' )
+        booleanParam(name: 'ouinon', defaultValue: false, description: '')
+    }
+
+    environment {
         registry = "vanessakovalsky/my-image-python"
         registryCredential = 'docker'
-	APP_CONTAINER_NAME = "myapppython"
-	DOCKER_IMAGE = "vanessakovalsky/my-image-python"
-	DOCKER_TAG = "${env.BUILD_NUMBER}"
-      }
+	    APP_CONTAINER_NAME = "myapppython"
+	    DOCKER_IMAGE = "vanessakovalsky/my-image-python"
+	    DOCKER_TAG = "${env.BUILD_NUMBER}"
+    }
 
-     agent any
+ //   triggers {
+ //       cron('H */4 * * 1-5')
+ //       pollSCM('H */4 * * 1-5')
+ //       upstream(upstreamProjects: 'Correction exercice 3', thresold: hudson.model.Result.SUCCESS)
+ //   }
 
-      stages {
+    agent any
+
+    stages {
         stage('Clone sources') {
             steps {
                 git url: 'https://github.com/vanessakovalsky/python-api-handle-it.git'
