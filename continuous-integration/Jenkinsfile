@@ -1,56 +1,92 @@
 pipeline {
 
-      environment {
+    parameters{
+        string(name: 'environnement', defaultValue: 'dev', description: 'choisir l\'environnement cible' )
+        booleanParam(name: 'ouinon', defaultValue: false, description: '')
+    }
+
+    environment {
         registry = "vanessakovalsky/my-image-python"
         registryCredential = 'docker'
-      }
+	    APP_CONTAINER_NAME = "myapppython"
+	    DOCKER_IMAGE = "vanessakovalsky/my-image-python"
+	    DOCKER_TAG = "${env.BUILD_NUMBER}"
+    }
 
-      agent any
-      stages {
+ //   triggers {
+ //       cron('H */4 * * 1-5')
+ //       pollSCM('H */4 * * 1-5')
+ //       upstream(upstreamProjects: 'Correction exercice 3', thresold: hudson.model.Result.SUCCESS)
+ //   }
+
+    agent any
+
+    stages {
         stage('Clone sources') {
             steps {
                 git url: 'https://github.com/vanessakovalsky/python-api-handle-it.git'
             }
         }
-        /*stage('continuous integration') { // Compile and do unit testing
-             tools {
-               gradle 'installGradle'
-             }
-             steps {
-                 parallel (
-                 // run Gradle to execute compile and unit testing
-                    pylint: {
-                        sh 'gradle lint'
-                    },
-                    pycode: {
-                        sh 'gradle pycode'
-                    }
-                )
-             }
-           }*/
+        //stage('Security analysis') {
+        //          steps{
+		//	  sh "mkdir report"
+		//	  sh "docker run --rm --volume \"\$(pwd)\":/src --volume report:/report secfigo/bandit:latest"
+		//	}
+		//}
+	stage ("Dependency Check with Python Safety"){
+			steps{
+				catchError {
+					sh "docker run --rm --volume \"\$(pwd)\" pyupio/safety:latest safety check"
+					sh "docker run --rm --volume \"\$(pwd)\" pyupio/safety:latest safety check --json > report.json"
+				}
+				echo currentBuild.result
+			}
+		}
+	stage ("Static Analysis with python-taint"){
+			steps{
+				sh "docker run --rm --volume \"\$(pwd)\" vickyrajagopal/python-taint-docker pyt ."
+			}
+		}
+	stage('continuous integration') { // Compile and do unit testing
 
-        // stage('testcode') {
-            //  tools {
-            //    gradle 'installGradle'
-            //  }
-        //     steps {
-        //         sh 'gradle test'
-        //     }
-        // }
+              tools {
+                gradle 'installGradle'
+              }
+              steps {
+                  parallel (
+                  // run Gradle to execute compile and unit testing
+                     pylint: {
+                         sh 'cd continuous-integration && gradle lint'
+                     },
+                     pycode: {
+                         sh 'cd continuous-integration && gradle pycode'
+                     }
+                 )
+              }
+    }
+
+        stage('testcode') {
+            tools {
+                gradle 'installGradle'
+              }
+             steps {
+                 sh 'gradle test'
+             }
+         }
         
         /*stage('Package and deploy') {
              tools {
                gradle 'installGradle'
              }
             steps {
-                sh 'gradle up'
+                sh 'cd continuous-integration && gradle up'
             }
         }*/
 
         stage('Build docker image') {
             steps{
                 script {
-                    dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                    dockerImage = docker.build(registry + ":$BUILD_NUMBER","-f docker-app/python/Dockerfile .")
                 } 
             }       
         }
@@ -65,9 +101,46 @@ pipeline {
             }
         }
 
+	
+        stage('Arrêt du Conteneur Existant') {
+            steps {
+                script {
+                    // Arrêter et supprimer le conteneur existant
+                    sh '''
+                        docker stop ${APP_CONTAINER_NAME} || true
+                        docker rm ${APP_CONTAINER_NAME} || true
+                    '''
+                }
+            }
+        }
+
         stage('Test image docker') {
             steps {
-                sh 'docker run -d --name my-image-python -p 3002:3002 --rm vanessakovalsky/my-image-python'
+                sh 'docker run -d --name ${APP_CONTAINER_NAME} -p 3002:5000 --rm vanessakovalsky/my-image-python:${DOCKER_TAG}'
+            }
+        }
+
+	 stage('Vérification du Déploiement') {
+            steps {
+                script {
+                    // Attendre le démarrage du conteneur
+                    sh 'sleep 30'
+                    
+                    // Test de santé basique
+                    sh 'curl http://localhost:3002/ || exit 1'
+                }
+            }
+        }
+
+	stage('Nettoyage') {
+            steps {
+                script {
+                    // Supprimer les anciennes images
+                    sh '''
+                        docker image prune -f
+                        docker images | grep ${DOCKER_IMAGE} | grep -v ${DOCKER_TAG} | awk \'{print $3}\' | xargs -r docker rmi || true
+                    '''
+                }
             }
         }
 
