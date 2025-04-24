@@ -6,28 +6,44 @@
 trigger:
 - master
 
-pool:
-  vmImage: ubuntu-latest
+jobs:
+  - job: build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'app/'
+        includeRootFolder: true
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
 
-steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: 'app/'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    replaceExistingArchive: true
-
-- task: AzureRmWebAppDeployment@5
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
-    appType: 'webAppContainer'
-    WebAppName: 'VanessaApp2'
-    DockerNamespace: 'vanessakovalsky'
-    DockerRepository: 'mypythonapp'
-    DockerImageTag: 'latest'
+  - job: waitForValidation
+    displayName: Wait for external validation
+    pool: server
+    timeoutInMinutes: 4320 # job times out in 3 days
+    steps:
+    - task: ManualValidation@1
+      inputs:
+        notifyUsers: 'v.david@kovalibre.com'
     
-- task: CmdLine@2
-  inputs:
-    script: 'wget https://vanessaapp2-awb2d4d4d3dug5cp.canadacentral-01.azurewebsites.net/ | grep ''Bienvenue sur l''application de gestion"'
+  - job: Deployment
+    displayName: Deployment
+    pool:
+      vmImage: ubuntu-latest
+    steps:  
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
+        appType: 'webAppContainer'
+        WebAppName: 'VanessaApp2'
+        DockerNamespace: 'vanessakovalsky'
+        DockerRepository: 'mypythonapp'
+        DockerImageTag: 'latest'
+        
+    - task: CmdLine@2
+      inputs:
+        script: 'wget https://vanessaapp2-awb2d4d4d3dug5cp.canadacentral-01.azurewebsites.net/ | grep ''Bienvenue sur l''application de gestion"'
