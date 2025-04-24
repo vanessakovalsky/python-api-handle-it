@@ -27,3 +27,7 @@ steps:
     DockerNamespace: 'vanessakovalsky'
     DockerRepository: 'mypythonapp'
     DockerImageTag: 'latest'
+    
+- task: CmdLine@2
+  inputs:
+    script: 'wget https://vanessaapp2-awb2d4d4d3dug5cp.canadacentral-01.azurewebsites.net/ | grep ''Bienvenue sur l''application de gestion"'
