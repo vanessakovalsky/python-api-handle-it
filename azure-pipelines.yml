@@ -34,6 +34,7 @@ jobs:
         appName: 'VanessaDemo'
         package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
         customDeployFolder: ROOT
+        startUpCommand: gunicorn --bind=0.0.0.0 main:app
 
  # - job: waitForValidation
  #   displayName: Wait for external validation
