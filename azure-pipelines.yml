@@ -19,6 +19,13 @@ jobs:
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
         replaceExistingArchive: true
+    - task: UniversalPackages@0
+      inputs:
+        command: 'publish'
+        publishDirectory: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        feedsToUsePublish: 'internal'
+        vstsFeedPublish: 'bd8e0f81-b92c-4ad5-8333-c9c1800cd9bd/68a8a337-87ce-4623-87a1-a0a9b9b6ad2d'
+        versionOption: 'patch'
     - task: AzureWebApp@1
       inputs:
         azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
