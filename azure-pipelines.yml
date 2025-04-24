@@ -1,0 +1,67 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+jobs:
+  - job: build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'app/'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
+    - task: UniversalPackages@0
+      inputs:
+        command: 'publish'
+        publishDirectory: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        feedsToUsePublish: 'internal'
+        vstsFeedPublish: 'bd8e0f81-b92c-4ad5-8333-c9c1800cd9bd/68a8a337-87ce-4623-87a1-a0a9b9b6ad2d'
+        vstsFeedPackagePublish: 'myfirstpythonapp'
+        versionOption: 'patch'
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
+        appType: 'webAppLinux'
+        appName: 'VanessaDemo'
+        package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        customDeployFolder: ROOT
+        startUpCommand: gunicorn --bind=0.0.0.0 main:app
+
+ # - job: waitForValidation
+ #   displayName: Wait for external validation
+ #   pool: server
+ #   timeoutInMinutes: 4320 # job times out in 3 days
+ #   steps:
+ #   - task: ManualValidation@1
+ #     inputs:
+ #       notifyUsers: 'v.david@kovalibre.com'
+    
+  - job: Deployment
+    displayName: Deployment
+ #   dependsOn: waitForValidation
+    pool:
+      vmImage: ubuntu-latest
+    steps:  
+
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
+        appType: 'webAppContainer'
+        WebAppName: 'VanessaApp2'
+        DockerNamespace: 'vanessakovalsky'
+        DockerRepository: 'mypythonapp'
+        DockerImageTag: 'latest'
+        
+    - task: CmdLine@2
+      inputs:
+        script: 'wget https://vanessaapp2-awb2d4d4d3dug5cp.canadacentral-01.azurewebsites.net/ | grep ''Bienvenue sur l''application de gestion"'
