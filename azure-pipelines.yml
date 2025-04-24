@@ -23,5 +23,5 @@ steps:
     azureSubscription: 'Paiement à l’utilisation(78b9a3d9-a777-4dad-8f72-5fc24f431d13)'
     appType: 'webAppLinux'
     WebAppName: 'VanessaDemo'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/app.zip'
+    packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
     DeploymentTypeLinux: 'oneDeploy'
