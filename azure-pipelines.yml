@@ -25,6 +25,7 @@ jobs:
         publishDirectory: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
         feedsToUsePublish: 'internal'
         vstsFeedPublish: 'bd8e0f81-b92c-4ad5-8333-c9c1800cd9bd/68a8a337-87ce-4623-87a1-a0a9b9b6ad2d'
+        vstsFeedPackagePublish: 'myfirstpythonapp'
         versionOption: 'patch'
     - task: AzureWebApp@1
       inputs:
