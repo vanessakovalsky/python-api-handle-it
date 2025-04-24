@@ -24,4 +24,5 @@ steps:
     appType: 'webAppLinux'
     WebAppName: 'VanessaDemo'
     packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    StartupCommand: 'python -m flask  --app app/main.py run'
     DeploymentTypeLinux: 'oneDeploy'
