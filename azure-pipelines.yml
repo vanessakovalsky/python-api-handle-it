@@ -35,18 +35,18 @@ jobs:
         package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
         customDeployFolder: ROOT
 
-  - job: waitForValidation
-    displayName: Wait for external validation
-    pool: server
-    timeoutInMinutes: 4320 # job times out in 3 days
-    steps:
-    - task: ManualValidation@1
-      inputs:
-        notifyUsers: 'v.david@kovalibre.com'
+ # - job: waitForValidation
+ #   displayName: Wait for external validation
+ #   pool: server
+ #   timeoutInMinutes: 4320 # job times out in 3 days
+ #   steps:
+ #   - task: ManualValidation@1
+ #     inputs:
+ #       notifyUsers: 'v.david@kovalibre.com'
     
   - job: Deployment
     displayName: Deployment
-    dependsOn: waitForValidation
+ #   dependsOn: waitForValidation
     pool:
       vmImage: ubuntu-latest
     steps:  
